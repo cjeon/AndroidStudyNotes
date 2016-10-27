@@ -8,7 +8,7 @@ In shorter, rougher words, it is library that we can use to do graphical things.
 3. Build things on `SurfaceView`. (Recommended `for real, do-it-yourself developers` and `requires writing quite a bit of additional code`, according to [official doc](https://developer.android.com/training/graphics/opengl/environment.html))
 
 ## Declare OpenGL ES Use in the Manifest
----
+
 First, we need to declare in `Android.manifest` that we are going to use OpenGL 2.0
 
 ``` 
@@ -21,7 +21,7 @@ additionally if we are going to use texture compression,
 ```
 
 ## Create an Activity for OpenGL ES Graphics
----
+
 With activity that uses `OpenGL`, there is an additional component that we can add to our layout. `GLSurfaceView`.
 Following is a minimal activity which sets `GLSurfaceView` as ContentView.
 
@@ -43,7 +43,7 @@ public class OpenGLES20Activity extends Activity {
 ```
 
 ## Build a GLSurfaceView Object
----
+
 Below is a minimal implementation of `GLSurfaceView`. It does
 1. set OpenGL ES version
 2. set GLRenderer.
@@ -72,7 +72,7 @@ Optionally, if we are sure that we can take control of `onDrawFrame()`, we save 
 
 
 ## Build a Renderer Class
----
+
 GLSurfaceView alone cannot do much things. We must implement renderer to do some real jobs.  
 We must implement the below three methods.
 * `onSurfaceCreated()` - Called once to set up the view's OpenGL ES environment.
@@ -113,7 +113,7 @@ Notes:
 2. Shapes are drawn in order of declaration. What is defined first is drawn first.
 
 ## Triangle 
----
+
 
 ``` java
 public class Triangle {
@@ -150,7 +150,7 @@ public class Triangle {
 ```
 
 ## Square
----
+
 
 ``` java
 public class Square {
@@ -193,7 +193,7 @@ public class Square {
 # Drawing Shapes
 
 ## Initialize Shapes
----
+
 We can Initialize them anywhere, but most commonly it is wise to initialize them in `onSurfaceCreated`.
 
 ``` java
@@ -216,7 +216,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 ```
 
 ## Draw a Shape
----
+
 >Drawing a defined shape using OpenGL ES 2.0 requires a significant amount of code, because you must provide a lot of details to the graphics rendering pipeline
 
 We need to implement followings:
@@ -225,7 +225,7 @@ We need to implement followings:
 3. `Program` - An OpenGL ES object that contains the shaders you want to use for drawing one or more shapes.
 
 ### Shaders
----
+
 We need to:
 1. Write them in `OpenGLShadingLanguage(GLSL)`.
 2. Compile them.
@@ -255,7 +255,7 @@ public class Triangle {
 If you want to know more about GLSL, please refer to [official doc](https://www.opengl.org/sdk/docs/).
 
 ### Compiling.
----
+
 
 We can compile this code by creating a utility method in render class.
 
@@ -276,7 +276,7 @@ public static int loadShader(int type, String shaderCode){
 Note: Make sure that you do not compile the shader more than once. Save it somewhere!
 
 ### Loading onto program.
----
+
 
 ``` java
 public class Triangle() {
@@ -313,7 +313,7 @@ Now, we have done
 It means we can now **draw** them.
 
 ### Drawing
----
+
 
 ``` java
 private int mPositionHandle;
@@ -440,7 +440,7 @@ Step 2. multiply it with previous projection.
 step 3. draw!
 
 ### Apply Projection and Camera Transformations
----
+
 
 ``` java
 public class Triangle {
@@ -461,5 +461,144 @@ public class Triangle {
     private int mMVPMatrixHandle;
 
     ...
+}
+```
+
+then we can draw **triangle** on the SurfaceView!
+
+```
+public void draw(float[] mvpMatrix) { // pass in the calculated transformation matrix
+    ...
+
+    // get handle to shape's transformation matrix
+    mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
+
+    // Pass the projection and view transformation to the shader
+    GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
+
+    // Draw the triangle
+    GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, vertexCount);
+
+    // Disable vertex array
+    GLES20.glDisableVertexAttribArray(mPositionHandle);
+}
+```
+
+# Adding Motion
+In fact, using the openGL only to draw triangles and squares is not a wise usage of it. We can draw a triangle just by defining custom drawable or canvas. However, openGL can do things other Android graphic frameworks cannot do, or do in complicated way.  
+Fully customizable motion is one of them.
+
+## Rotate a Shape
+We can rotate a shape by setting `setRotateM` of `Matrix`, like below.
+
+``` java
+private float[] mRotationMatrix = new float[16];
+public void onDrawFrame(GL10 gl) {
+    float[] scratch = new float[16];
+
+    ...
+
+    // Create a rotation transformation for the triangle
+    long time = SystemClock.uptimeMillis() % 4000L;
+    float angle = 0.090f * ((int) time);
+    Matrix.setRotateM(mRotationMatrix, 0, angle, 0, 0, -1.0f);
+
+    // Combine the rotation matrix with the projection and camera view
+    // Note that the mMVPMatrix factor *must be first* in order
+    // for the matrix multiplication product to be correct.
+    Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
+
+    // Draw triangle
+    mTriangle.draw(scratch);
+}
+```
+Then each time `onDrawFrame` is called, `time` will change, which will lead to change of `RotateM`, which will result in rotating object.
+
+# Responding to Touch Events
+## Setup a Touch Listener
+We can responde to touch event by implementing `onTouchEvent` in `GLSurfaceView` class.  
+Below code changes the rotation of triangle according to touch event.
+
+``` java
+private final float TOUCH_SCALE_FACTOR = 180.0f / 320;
+private float mPreviousX;
+private float mPreviousY;
+
+@Override
+public boolean onTouchEvent(MotionEvent e) {
+    // MotionEvent reports input details from the touch screen
+    // and other input controls. In this case, you are only
+    // interested in events where the touch position changed.
+
+    float x = e.getX();
+    float y = e.getY();
+
+    switch (e.getAction()) {
+        case MotionEvent.ACTION_MOVE:
+
+            float dx = x - mPreviousX;
+            float dy = y - mPreviousY;
+
+            // reverse direction of rotation above the mid-line
+            if (y > getHeight() / 2) {
+              dx = dx * -1 ;
+            }
+
+            // reverse direction of rotation to left of the mid-line
+            if (x < getWidth() / 2) {
+              dy = dy * -1 ;
+            }
+
+            mRenderer.setAngle(
+                    mRenderer.getAngle() +
+                    ((dx + dy) * TOUCH_SCALE_FACTOR));
+            requestRender();
+    }
+
+    mPreviousX = x;
+    mPreviousY = y;
+    return true;
+}
+```
+## Expose the Rotation Angle
+Since we are accessing `mRenderer`'s angle via `setAngle` and `getAngle`, we need to have a way to access it.  
+And because render is running on separate thread, we need to make sure the angle is saved and read from memory only, we need to declare this as `volatile`.
+
+``` java
+public class MyGLRenderer implements GLSurfaceView.Renderer {
+    ...
+
+    public volatile float mAngle;
+
+    public float getAngle() {
+        return mAngle;
+    }
+
+    public void setAngle(float angle) {
+        mAngle = angle;
+    }
+}
+```
+
+## Apply Rotation
+Now we can apply rotation by overriding previous `onDrawFrame`.
+
+``` java
+public void onDrawFrame(GL10 gl) {
+    ...
+    float[] scratch = new float[16];
+
+    // Create a rotation for the triangle
+    // long time = SystemClock.uptimeMillis() % 4000L;
+    // float angle = 0.090f * ((int) time);
+    Matrix.setRotateM(mRotationMatrix, 0, mAngle, 0, 0, -1.0f);
+
+    // Combine the rotation matrix with the projection and camera view
+    // Note that the mMVPMatrix factor *must be first* in order
+    // for the matrix multiplication product to be correct.
+    Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
+
+    // Draw triangle
+    mTriangle.draw(scratch);
 }
 ```

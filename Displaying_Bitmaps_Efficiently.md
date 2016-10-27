@@ -45,7 +45,7 @@ In order to make use of inSampleSize aquired above, we need to set `inJustDecode
 * Heavy tasks should **not** be done on UI Thread, **obviously**.
 
 ## Using AsyncTask
----
+
 * One way to go is to use **AsyncTask**. Imagine we had a async method called `loadBitmap`. It should do followings:
     1. Load an Image,
     2. Process it,
@@ -104,7 +104,7 @@ class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
 
 
 ## Concurrency
----
+
 * In android, some view components are **recycled**, and this can cause problems. Since we made weak references to view components above, if certain view components are recycled, unexpected results may happen.
 * We do not want this to happen:
     1. More than one async tasks trying to load different images onto a same view (possible if view is recycled).
@@ -230,7 +230,7 @@ So far so good. However, think of this scenario:
 We can avoid this by **caching** images. There are two options. **Memory(RAM) Cache** and **Disk Cache**.
 
 ## Memory `LruCache`
----
+
 **LruCache** keeps recently referenced objects in a strong referenced LinkedHashMap. Deletes least referenced item when cache storage runs out.  
 Before setting up LruCache, we should choose size of the cache. For that, we need to consider following factors:
 1. How many images do we need to cache
@@ -314,7 +314,7 @@ class BitmapWorkerTask extends AsyncTask<Integer, Void, Bitmap> {
 ```
 
 ## `DiskLruCache`
----
+
 As its name suggests, `DiskLruCache` is a cache which acts almost same as `LruCache`, but stores data in disk, rather than memory.
 
 ``` java
@@ -420,7 +420,7 @@ Points to note are:
 2. Memory cache was checked in the UI thread, however, checking disk cache is checked in the background because this can take a long time.
 
 ## Handling configuration changes
----
+
 When configuration changes - such as rotating display - it will destroy all the views you made **and make you lose control of caches you made**.  
 You can avoid this tragedy by passing your cache to a fragment and keep fragment by calling `setRetainInstance(true)`
 
@@ -469,7 +469,7 @@ Here, `retainFragment.mRetainedCache` is Initialized when `mMemoryCache` is `nul
 
 # Bitmap + UI examples
 ## ViewPager
----
+
 ViewPager: Swipe left and right to change view. (Like Azar main view.) Sometimes loades images onto view.
 
 ``` java
@@ -563,7 +563,7 @@ Here, following improvements can be made.
 2. We can **cache** the images.
 
 ## GridView Implementation
----
+
 I'll not copy-paste the example codes here because we are going to talk about the same things we've been talking about again.
 1. Load images in the AsyncTask
 2. Cache your images if necessary.
