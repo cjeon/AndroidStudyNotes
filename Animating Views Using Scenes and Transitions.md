@@ -55,7 +55,100 @@ From official doc,
 * If you try to resize a TextView with an animation, the text will pop to a new location before the object has completely resized. To avoid this problem, do not animate the resizing of views that contain text.
 
 # Creating a scene
+## Create a Scene From a Layout Resource
 
+`res/layout/activity_main.xml` (note the include)
 
+``` java
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/master_layout">
+    <TextView
+        android:id="@+id/title"
+        ...
+        android:text="Title"/>
+    <FrameLayout
+        android:id="@+id/scene_root">
+        <include layout="@layout/a_scene" />
+    </FrameLayout>
+</LinearLayout>
+```
+
+`res/layout/a_scene.xml` 
+
+``` java
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scene_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    <TextView
+        android:id="@+id/text_view1"
+        android:text="Text Line 1" />
+    <TextView
+        android:id="@+id/text_view2"
+        android:text="Text Line 2" />
+</RelativeLayout>
+```
+
+`res/layout/another_scene.xml` (reverse order of TextView)
+
+``` java
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/scene_container"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    <TextView
+        android:id="@+id/text_view2"
+        android:text="Text Line 2" />
+    <TextView
+        android:id="@+id/text_view1"
+        android:text="Text Line 1" />
+</RelativeLayout>
+```
+
+## Generate Scenes from Layouts
+
+``` java
+Scene mAScene;
+Scene mAnotherScene;
+
+// Create the scene root for the scenes in this app
+mSceneRoot = (ViewGroup) findViewById(R.id.scene_root);
+
+// Create the scenes
+mAScene = Scene.getSceneForLayout(mSceneRoot, R.layout.a_scene, this);
+mAnotherScene =
+    Scene.getSceneForLayout(mSceneRoot, R.layout.another_scene, this);
+```
+
+## Create a Scene in Your Code
+``` java
+Scene mScene;
+
+// Obtain the scene root element
+mSceneRoot = (ViewGroup) mSomeLayoutElement;
+
+// Obtain the view hierarchy to add as a child of
+// the scene root when this scene is entered
+mViewHierarchy = (ViewGroup) someOtherLayoutElement;
+
+// Create a scene
+mScene = new Scene(mSceneRoot, mViewHierarchy);
+```
+
+## Create Scene Actions
+To provide custom scene actions, define your actions as Runnable objects and pass them to the Scene.setExitAction() or Scene.setEnterAction() methods. The framework calls the setExitAction() method on the starting scene before running the transition animation and the setEnterAction() method on the ending scene after running the transition animation.
+
+# Applying a Transition
+## Create a Transition
+
+| Class | Tag | Attributes | Effect |  
+-------------------------------------
+|AutoTransition | `<autoTransition/>` |	- |	Default transition. Fade out, move and resize, and fade in views, in that order. |  
+|Fade |	`<fade/>` |	android:fadingMode="[fade_in |
+fade_out |
+fade_in_out]" |	fade_in fades in views
+fade_out fades out views
+fade_in_out (default) does a fade_out followed by a fade_in.|  
+|ChangeBounds|	`<changeBounds/>` |	- |	Moves and resizes views.|  
 
 
