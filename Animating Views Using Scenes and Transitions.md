@@ -140,15 +140,183 @@ To provide custom scene actions, define your actions as Runnable objects and pas
 
 # Applying a Transition
 ## Create a Transition
+1. Use builtins.
+2. Create from resource file.
+3. Dynamically create transitions.
 
+**Builtin transitions**
 | Class | Tag | Attributes | Effect |  
--------------------------------------
+--------|-----|------------|--------|
 |AutoTransition | `<autoTransition/>` |	- |	Default transition. Fade out, move and resize, and fade in views, in that order. |  
-|Fade |	`<fade/>` |	android:fadingMode="[fade_in |
-fade_out |
-fade_in_out]" |	fade_in fades in views
-fade_out fades out views
-fade_in_out (default) does a fade_out followed by a fade_in.|  
+|Fade |	`<fade/>` |	android:fadingMode="[fade_in, fade_out, fade_in_out]" |	`fade_in` fades in views, `fade_out` fades out views, `fade_in_out` (default) does a fade_out followed by a fade_in.|  
 |ChangeBounds|	`<changeBounds/>` |	- |	Moves and resizes views.|  
 
+
+## Create a transition instance from a resource file
+1. Add the res/transition/ directory to your project.
+2. Create a new XML resource file inside this directory.
+3. Add an XML node for one of the built-in transitions.
+
+in xml,  
+`<fade xmlns:android="http://schemas.android.com/apk/res/android" />`
+
+in code,
+
+``` java
+Transition mFadeTransition =
+        TransitionInflater.from(this).
+        inflateTransition(R.transition.fade_transition);
+```
+
+## Create a transition instance in your code
+
+``` java
+Transition mFadeTransition = new Fade();
+```
+
+# Apply a Transition
+`TransitionManager.go(mEndingScene, mFadeTransition);`
+
+## Choose Specific Target Views
+We can add, or remove part of view hierarchy by calling: `removeTarget()` and `addTarget()`
+
+## Specify Multiple Transitions
+We can congregate multiple transitions into one.
+
+``` java
+<transitionSet xmlns:android="http://schemas.android.com/apk/res/android"
+    android:transitionOrdering="sequential">
+    <fade android:fadingMode="fade_out" />
+    <changeBounds />
+    <fade android:fadingMode="fade_in" />
+</transitionSet>
+```
+
+## Apply a Transition Without Scenes
+We can use this approach if transition those not include a lot of change in view. For example, small modification within same layout, or transition to nearly identical layout.
+
+1. When the event that triggers the transition occurs, call the TransitionManager.beginDelayedTransition() method providing the parent view of all the views you want to change and the transition to use. The framework stores the current state of the child views and their property values.
+2. Make changes to the child views as required by your use case. The framework records the changes you make to the child views and their properties.
+3. When the system redraws the user interface according to your changes, the framework animates the changes between the original state and the new state.
+
+`activity_main.xml`
+
+``` xml
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent" >
+    <EditText
+        android:id="@+id/inputText"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentTop="true"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+    ...
+</RelativeLayout>
+```
+
+`MainActivity.java`
+
+``` java
+private TextView mLabelText;
+private Fade mFade;
+private ViewGroup mRootView;
+...
+
+// Load the layout
+this.setContentView(R.layout.activity_main);
+...
+
+// Create a new TextView and set some View properties
+mLabelText = new TextView();
+mLabelText.setText("Label").setId("1");
+
+// Get the root view and create a transition
+mRootView = (ViewGroup) findViewById(R.id.mainLayout);
+mFade = new Fade(IN);
+
+// Start recording changes to the view hierarchy
+TransitionManager.beginDelayedTransition(mRootView, mFade);
+
+// Add the new TextView to the view hierarchy
+mRootView.addView(mLabelText);
+
+// When the system redraws the screen to show this update,
+// the framework will animate the addition as a fade in
+```
+
+## Define Transition Lifecycle Callbacks
+Transition lifecycle callbacks are useful, for example, for copying a view property value from the starting view hierarchy to the ending view hierarchy during a scene change.  
+Override `TransitionListener.onTransitionEnd()`.
+
+# Creating Custom Transitions
+## Extend the Transition Class
+Override below.
+
+``` java
+public class CustomTransition extends Transition {
+
+    @Override
+    public void captureStartValues(TransitionValues values) {}
+
+    @Override
+    public void captureEndValues(TransitionValues values) {}
+
+    @Override
+    public Animator createAnimator(ViewGroup sceneRoot,
+                                   TransitionValues startValues,
+                                   TransitionValues endValues) {}
+}
+```
+
+## Capture View Property Values
+Transition animations use the property animation system described in Property Animation.  
+However, a property animation usually needs only a small subset of all the view's property values. nstead, the framework invokes callback methods that allow a transition to capture only the property values it needs and store them in the framework.
+
+
+### Capturing Starting Values
+To pass the starting view values to the framework, implement the `captureStartValues(transitionValues)` method.
+
+example:
+
+``` java
+public class CustomTransition extends Transition {
+
+    // Define a key for storing a property value in
+    // TransitionValues.values with the syntax
+    // package_name:transition_class:property_name to avoid collisions
+    private static final String PROPNAME_BACKGROUND =
+            "com.example.android.customtransition:CustomTransition:background";
+
+    @Override
+    public void captureStartValues(TransitionValues transitionValues) {
+        // Call the convenience method captureValues
+        captureValues(transitionValues);
+    }
+
+
+    // For the view in transitionValues.view, get the values you
+    // want and put them in transitionValues.values
+    private void captureValues(TransitionValues transitionValues) {
+        // Get a reference to the view
+        View view = transitionValues.view;
+        // Store its background property in the values map
+        transitionValues.values.put(PROPNAME_BACKGROUND, view.getBackground());
+    }
+    ...
+}
+```
+
+### Capture Ending Values
+
+``` java
+@Override
+public void captureEndValues(TransitionValues transitionValues) {
+    captureValues(transitionValues);
+}
+```
+
+### Create a Custom Animator
+Override `createAnimator()`. Example in [here](https://github.com/googlesamples/android-CustomTransition/blob/master/Application/src/main/java/com/example/android/customtransition/ChangeColor.java) (Too long to attach)
 
