@@ -145,6 +145,7 @@ To provide custom scene actions, define your actions as Runnable objects and pas
 3. Dynamically create transitions.
 
 **Builtin transitions**
+
 | Class | Tag | Attributes | Effect |  
 --------|-----|------------|--------|
 |AutoTransition | `<autoTransition/>` |	- |	Default transition. Fade out, move and resize, and fade in views, in that order. |  
