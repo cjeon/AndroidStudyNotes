@@ -3,6 +3,7 @@ What is OpenGL ES?
 >OpenGL for Embedded Systems (OpenGL ES or GLES) is a subset of the OpenGL computer graphics rendering application programming interface (API) for rendering 2D and 3D computer graphics such as those used by video games, typically hardware-accelerated using a graphics processing unit (GPU).  -Wikipedia
 
 In shorter, rougher words, it is library that we can use to do graphical things. There are quite a few ways to make use of OpenGL.
+
 1. Implement `GLSurfaceView` and `GLSurfaceView.Renderer`. (For full screen)
 2. Implement `TextureView`. (For smaller graphics)
 3. Build things on `SurfaceView`. (Recommended `for real, do-it-yourself developers` and `requires writing quite a bit of additional code`, according to [official doc](https://developer.android.com/training/graphics/opengl/environment.html))
@@ -45,6 +46,7 @@ public class OpenGLES20Activity extends Activity {
 ## Build a GLSurfaceView Object
 
 Below is a minimal implementation of `GLSurfaceView`. It does
+
 1. set OpenGL ES version
 2. set GLRenderer.
 
@@ -105,10 +107,12 @@ Of course, we will do things more interesting further.
 # Defining Shapes
 We are going to start from shapes. Like triangles, squares etc., but they are more interesting than *black background*, I assume.  
 We are going to define
+
 1. Triangle
 2. Square
 
 Notes:
+
 1. Coordinate system: It's three dimensional, and center of GLSurfaceView is (0,0,0). Top right is (1,1,0), bottom left is (-1,-1,0).
 2. Shapes are drawn in order of declaration. What is defined first is drawn first.
 
@@ -220,6 +224,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer {
 >Drawing a defined shape using OpenGL ES 2.0 requires a significant amount of code, because you must provide a lot of details to the graphics rendering pipeline
 
 We need to implement followings:
+
 1. `Vertex Shader` - OpenGL ES graphics code for rendering the vertices of a shape.
 2. `Fragment Shader` - OpenGL ES code for rendering the face of a shape with colors or textures.
 3. `Program` - An OpenGL ES object that contains the shaders you want to use for drawing one or more shapes.
@@ -227,6 +232,7 @@ We need to implement followings:
 ### Shaders
 
 We need to:
+
 1. Write them in `OpenGLShadingLanguage(GLSL)`.
 2. Compile them.
 3. Added to `Program`.
@@ -307,9 +313,11 @@ public class Triangle() {
 }
 ```
 Now, we have done
+
 1. Defining shaders, 
 2. Compling shaders,
-3. Loading shaders onto program.
+3. Loading shaders onto program.  
+
 It means we can now **draw** them.
 
 ### Drawing

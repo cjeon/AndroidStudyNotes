@@ -179,6 +179,7 @@ public static boolean cancelPotentialWork(int data, ImageView imageView) {
 }
 ```
 Above code checks two things:
+
 1. Are any tasks running on the imageView? (If no, it immediately returns true.)
 2. If there are, is it trying to load same data as we are currently trying to? Or is it different? (If same, we don't do anything further. If different, we cancel that outdated task.)  
 
@@ -233,6 +234,7 @@ We can avoid this by **caching** images. There are two options. **Memory(RAM) Ca
 
 **LruCache** keeps recently referenced objects in a strong referenced LinkedHashMap. Deletes least referenced item when cache storage runs out.  
 Before setting up LruCache, we should choose size of the cache. For that, we need to consider following factors:
+
 1. How many images do we need to cache
 2. How big are images?
 3. How memory intensive is your app?
@@ -275,6 +277,7 @@ public Bitmap getBitmapFromMemCache(String key) {
 }
 ```
 Things to note are:
+
 1. `LruCache` takes size in kilobytes.
 2. As explained above, `LruCache` works like normal hashmap.
 
@@ -416,6 +419,7 @@ public static File getDiskCacheDir(Context context, String uniqueName) {
 ```
 
 Points to note are:
+
 1. `get` from cache is locked until cache is Initialized. This is here because initiating disk cache takes more time than initiating memory cache.
 2. Memory cache was checked in the UI thread, however, checking disk cache is checked in the background because this can take a long time.
 
@@ -559,12 +563,14 @@ public class ImageDetailFragment extends Fragment {
 }
 ```
 Here, following improvements can be made.
+
 1. Instead of loading images in UI thread, we can use **async task** discussed before.
 2. We can **cache** the images.
 
 ## GridView Implementation
 
 I'll not copy-paste the example codes here because we are going to talk about the same things we've been talking about again.
+
 1. Load images in the AsyncTask
 2. Cache your images if necessary.
 3. (+) For greedview and listview, pay attention to **concurrency**

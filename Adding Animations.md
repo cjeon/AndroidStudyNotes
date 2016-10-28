@@ -2,6 +2,7 @@
 Here we cover not scholastic, techninal knowledge, but rather real-world implementation of widely used animations.
 
 We are going to see
+
 1. Crossfading Views
 2. View pager (already covered)
 3. Card flip animations
@@ -88,6 +89,7 @@ private void crossfade() {
 ## Create the Animators
 
 We need to make two animations. 
+
 1. Card coming in from left(`card_flip_left_in`)
 2. Card going away to left(`card_flip_left_out`)
 3. Card coming in from right(`card_flip_right_in`)
@@ -313,6 +315,7 @@ Code too long to attach see [here](https://developer.android.com/training/animat
 3. Animate to zoom in image. Take step backwards to zoom out.
 
 Code explained:
+
 1. `if (mCurrentAnimator != null)`: no repetition!
 2. `new Rect()` parts and `offset` parts: Initial size is this and final size is this.
 3. `if ((float) finalBounds.width() / finalBounds.height() > (float) startBounds.width() / startBounds.height())`: Do [center crop](http://i.stack.imgur.com/DGeyI.png). There's no guarantee that the initial ration and final ratio are always same.
