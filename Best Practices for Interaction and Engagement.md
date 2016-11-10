@@ -1,11 +1,23 @@
 # [Best Practices for Interaction and Engagement](https://developer.android.com/training/best-ux.html)  
 
+index:
+
+1. [Back & UP](#back--up)
+2. [Ancestral & Temporal](#ancestral--temporal)
+3. [Creating Swipe Views with Tabs](#creating-swipe-views-with-tabs)
+4. [Creating a Navigation Drawer](#creating-a-navigation-drawer)
+5. [Providing Proper Back Navigation](#providing-proper-back-navigation)
+6. [Building a Notification](#building-a-notification)
+7. [Preserving Navigation when Starting an Activity](#preserving-navigation-when-starting-an-activity)
+8. [Using Big View Styles](#using-big-view-styles)
+9. [Displaying Progress in a Notification](#displaying-progress-in-a-notification)
+
 # [Back & Up](https://developer.android.com/design/patterns/navigation.html)
 
 Back : navigate to previous screen.  
 Up : navigate to parent screen.
 
-# [Ancestral & Temporal ](https://developer.android.com/training/design-navigation/ancestral-temporal.html)
+# [Ancestral & Temporal](https://developer.android.com/training/design-navigation/ancestral-temporal.html)
 
 Temporal(back) : Navigate back to previous screen (regardless of the app) 
 Ancestral(Up & Home) : Navigate to parent of current screen (regardless of the app flow) 
