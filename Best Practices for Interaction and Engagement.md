@@ -488,6 +488,8 @@ Set indeterminate to false if we do not know when the task will be completed. (c
 3. Increment its progress.
 4. When progress is full, notify user with "progress done!"
 
+Note: Updating should be done in the background thread. RXjava can come in handy.
+
 ``` java
 public void getFixedDurationProgressNotification(View view) {
     // Make normal notification builder w/ setProgress(1,0,false)
@@ -514,6 +516,129 @@ public void getFixedDurationProgressNotification(View view) {
                                 .setAutoCancel(true);
                         notificationManager.notify(id, timedBuilder.build()); }
             );
+}
+```
+
+# [Supporting Swipe-to-Refresh](https://developer.android.com/training/swipe/index.html)
+
+Vertical swipe to refresh contents: often used in SNS(social media) timelines.
+
+## [Adding Swipe-to-Refresh To Your App](https://developer.android.com/training/swipe/add-swipe-interface.html)
+
+3 Methods to support refresh will be covered below.
+
+1. Adding, and responding to swipe-to-refresh gesture.
+2. Adding, and responding to refresh menu item.
+3. Adding, and responding to refresh menu button. (*Google doesn't recommend this)
+
+Google recommends developer implement both gesture and menu item, because some users may not be able to swipe the screen. However, Google does not recomment the #3 method, because
+
+> If you display the action as a button, users may assume that the refresh button action is different from the swipe-to-refresh action.
+
+I do not buy this, so I also implemented the third way. (Clicking menu **BOTHERS** user!)
+
+### 1. Adding, and responding to swipe-to-refresh gesture.
+
+1. Use `android.support.v4.widget.SwipeRefreshLayout`.
+2. Implement `SwipeRefreshLayout.setOnRefreshListener`.
+
+Simple SwipeRefreshLayout w/ one ListView.
+
+``` xml
+<android.support.v4.widget.SwipeRefreshLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+        ...
+    android:paddingTop="@dimen/activity_vertical_margin">
+
+    <ListView
+        android:id="@+id/list_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+</android.support.v4.widget.SwipeRefreshLayout>
+```
+
+Java code for gesture response.
+
+`onCreate`
+
+``` java
+@Override
+protected void onCreate(Bundle savedInstanceState) {
+    super.onCreate(savedInstanceState);
+    setContentView(R.layout.activity_swipe_refresh);
+
+        ... // some listView adapter settings.
+
+    swipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.activity_swipe_refresh);
+    swipeRefreshLayout.setOnRefreshListener(this::addListViewItem);
+}
+```
+
+`addListViewItem` (Note the `swipeRefreshLayout.setRefreshing(false);`. If you don't set this false, the refreshing wheel will go on forever.)
+
+```java
+public void addListViewItem() {
+    listItems.add(number);
+    listAdapter.notifyDataSetChanged();
+    number += 1;
+    swipeRefreshLayout.setRefreshing(false);
+}
+```
+
+### 2. Adding, and responding to refresh menu item. & 3. Adding, and responding to refresh menu button.
+
+Both are very similar except few lines, so I'll just introduce the two together.
+
+1. Define custom menu
+2. Inflate the menu by overriding `onCreateOptionsMenu`.
+3. Respond to the menu click by overrding `onOptionsItemSelected`.
+
+#### 1. `menu_refresh.xml`
+
+``` xml
+<?xml version="1.0" encoding="utf-8"?>
+<menu
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <!-- Button -->
+    <item
+        android:id="@+id/button_refresh"
+        android:icon="@drawable/ic_refresh_black_24dp"
+        android:title="Refresh"
+        app:showAsAction="ifRoom" />
+    <!-- Menu item -->
+    <item
+        android:id="@+id/menu_refresh"
+        app:showAsAction="never"
+        android:title="Refresh"/>
+</menu>
+```
+Button needs icon because it will be displayed as button if possible(because `app:showAsAction="ifRoom"`), but menu item does not need one (because `app:showAsAction="never"`). 
+
+#### 2. `onCreateOptionsMenu` Menu inflation.
+
+``` java
+@Override
+public boolean onCreateOptionsMenu(Menu menu) {
+    MenuInflater menuInflater = getMenuInflater();
+    menuInflater.inflate(R.menu.menu_refresh, menu);
+    return super.onCreateOptionsMenu(menu);
+}
+```
+
+#### 3. `onOptionsItemSelected` responding.
+
+``` java
+@Override
+public boolean onOptionsItemSelected(MenuItem menuItem) {
+    switch (menuItem.getItemId()) {
+        case R.id.menu_refresh:
+        case R.id.button_refresh:
+            addListViewItem();
+            return true;
+    }
+    return true;
 }
 ```
 
