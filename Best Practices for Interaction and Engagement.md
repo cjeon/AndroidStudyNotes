@@ -303,5 +303,205 @@ public void onBackPressed() {
 }
 ```
 
+# [Notifying the User](https://developer.android.com/training/notify-user/index.html)
 
+# [Building a Notification](https://developer.android.com/training/notify-user/build-notification.html)
+
+Build notification using `Notification.Builder` or `NotificationCompat.Builder`. Mandatory options are : 1. `setSmallIcon()`, 2. `setContentTitle()`, 3. `setContentText()`. You can find other options at [official doc](https://developer.android.com/reference/android/support/v4/app/NotificationCompat.Builder.html).
+
+Implementation:
+
+1. Build a notification
+2. Add pending intent to launch when user tabs notification.
+3. Register notification to the notification manager.
+
+``` java
+public void sendNotification(View view) {
+    NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+            .setSmallIcon(R.drawable.ic_error_outline_white_24dp)
+            .setContentTitle("Notification Title")
+            .setContentText("Notification text")
+            .setTicker("Note !")
+            .setVibrate(new long[] {1000, 1000});
+
+    Intent main = new Intent(this, MainActivity.class);
+    PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, main, PendingIntent.FLAG_UPDATE_CURRENT);
+    builder.setContentIntent(pendingIntent);
+    int notificationId = 1;
+    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    notificationManager.notify(notificationId, builder.build());
+} 
+```
+
+# [Preserving Navigation when Starting an Activity](https://developer.android.com/training/notify-user/navigation.html)
+
+When user clicks an alarm sent by an application, user will see one of the two kinds of activity: 
+
+1. Regular Activity: This is an activity that user can regularly see during app navigation.
+2. Special Activity: This is an activity that user can only see through clicking the alarm, i.e. it has no regular entry. + It's very hard (or impossible) for user to come back to this activity.
+
+Below are ways to provide appropriate context for both situations.
+
+## Regular activity
+
+1. Define activity hierarchy in the manifest.
+
+Here, I'm going to re-use the `UpActivity` we defined above (because it already has well defined structure.)
+
+AndroidManifest.xml
+
+``` xml
+<activity android:name=".Activity.MainActivity">
+    <intent-filter>
+        <action android:name="android.intent.action.MAIN" />
+
+        <category android:name="android.intent.category.LAUNCHER" />
+    </intent-filter>
+</activity>
+   ...
+<activity
+    android:name=".Activity.UpActivity"
+    android:label="Up">
+    <meta-dat
+        android:name="android.support.PARENT_ACTIVITY"
+        android:value=".Activity.MainActivity" />
+</activity>
+```
+
+Then
+
+1. Use TaskStackBuilder to build a stack of tasks you want user to go through, and build a pending intent.
+2. Build a notification (done before)
+3. Add notification to NotificationManager w/ pending intent.
+
+``` java
+public void sendNotificationWithRegularContext(View view) {
+    // 1. Build a stack of tasks -> get pending intent
+    Intent up = new Intent(this, UpActivity.class);
+    TaskStackBuilder taskStackBuilder = TaskStackBuilder.create(this);
+    taskStackBuilder.addNextIntentWithParentStack(up);
+    PendingIntent pendingIntent = taskStackBuilder.getPendingIntent(0, PendingIntent.FLAG_UPDATE_CURRENT);
+
+    // 2. Build a notification.
+    int notificationId = 1;
+    NotificationCompat.Builder builder = new NotificationCompat.Builder(this)
+            ... (skip notification details like text, vibration.)
+    builder.setContentIntent(pendingIntent);
+
+    // 3. Add notification to NotificationManager.
+    NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+    notificationManager.notify(notificationId, builder.build());
+}
+```
+
+## [Set Up a Special Activity PendingIntent](https://developer.android.com/training/notify-user/navigation.html#ExtendedNotification)
+
+Little modification from above regular notification would suffice.
+
+In android manifest, edit `android:taskAffinity` and `android:excludeFromRecents` like below
+
+``` xml
+<activity
+    android:name=".Activity.SpecialActivity"
+    android:taskAffinity=""
+    android:excludeFromRecents="true"/>
+```
+
+[`android:taskAffinity`](https://developer.android.com/guide/topics/manifest/activity-element.html#aff): 
+> The task that the activity has an affinity for. Activities with the same affinity conceptually belong to the same task (to the same "application" from the user's perspective). The affinity of a task is determined by the affinity of its root activity.
+The affinity determines two things — the task that the activity is re-parented to (see the allowTaskReparenting attribute) and the task that will house the activity when it is launched with the FLAG_ACTIVITY_NEW_TASK flag.  
+By default, all activities in an application have the same affinity. You can set this attribute to group them differently, and even place activities defined in different applications within the same task. **To specify that the activity does not have an affinity for any task, set it to an empty string**.  
+If this attribute is not set, the activity inherits the affinity set for the application (see the <application> element's taskAffinity attribute). The name of the default affinity for an application is the package name set by the <manifest> element.
+
+[`android:excludeFromRecents`](https://developer.android.com/guide/topics/manifest/activity-element.html#exclude)
+> Whether or not the task initiated by this activity should be excluded from the list of recently used applications, the overview screen. That is, when this activity is the root activity of a new task, this attribute determines whether the task should not appear in the list of recent apps. Set "true" if the task should be excluded from the list; set "false" if it should be included. The default value is "false".
+
+# [Updating Notifications](https://developer.android.com/training/notify-user/managing.html)
+
+Updating notifications: It's simple. Issue a new notification w/ old notification's ID.
+
+Removing notifications: call `NotificationManager.cancel()` or `NotificationManager.cancelAll()`. 
+
+*Note: All notifications are set to be persistent, i.e., it does not go away when users clicks it. (wonder why google made it this way) To make it go away when user clicks notification, set `setAutoCancel(true)`.
+
+# [Using Big View Styles](https://developer.android.com/training/notify-user/expanded.html)
+
+There are many styles provided by Google. ex: BigPictureStyle, BigTextStyle .. etc. Refer to [official doc]() for more info. Here, we are going to test one of those styles, `Big View Style`. 
+
+1. Build a notification as before.
+2. Set style of a notification. Use either predefined one, or you can make your own.
+3. Attach necessary appendments to the notification. For example, if your new notification requires 2 extra buttons, attach two more intents to the notification.
+4. Notify as before.
+
+``` java
+    public void sendBigViewNotification(View view) {
+
+        // Like before, we build a notification. (skipped 10+ lines)
+        builder.setContentIntent(pendingIntent);
+
+        // We need two more buttons, so make two more intents.
+        // Dismiss
+        Intent dismissIntent = new Intent(this, NotificationActivity.class)
+                .setAction(NotificationActivity.DISMISS);
+        PendingIntent dismissPendingIntent = PendingIntent.getActivity(this, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Snooze
+        PendingIntent snoozePendingIntent = PendingIntent.getActivity(this, 0, new Intent(), PendingIntent.FLAG_UPDATE_CURRENT);
+
+        // Then set style of the notification. Add icons, too.
+        builder.setStyle(new NotificationCompat.BigTextStyle().bigText("BIG VIEW MESSAGE"))
+                .addAction(R.drawable.ic_delete_forever_black_24dp, "dismiss", dismissPendingIntent)
+                .addAction(R.drawable.ic_done_black_24dp, "snooze", snoozePendingIntent);
+
+        // Notify as before.
+        NotificationManager notificationManager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+        notificationManager.notify(1, builder.build());
+    }
+```
+
+# [Displaying Progress in a Notification](https://developer.android.com/training/notify-user/display-progress.html)
+
+Use `setProgress` function. Takes 3 argument. 
+
+|Parameters||
+--|--
+max|int
+progress|int
+indeterminate|boolean
+
+Set indeterminate to false if we do not know when the task will be completed. (covered right next) Below example shows how to setup a notification when we [know|can notify] the progress.
+
+1. Make normal Notification builder.
+2. Set its progress to 0
+3. Increment its progress.
+4. When progress is full, notify user with "progress done!"
+
+``` java
+public void getFixedDurationProgressNotification(View view) {
+    // Make normal notification builder w/ setProgress(1,0,false)
+    timedBuilder = new NotificationCompat.Builder(this);
+    timedBuilder.setContentTitle("Progress Bar")
+            .setContentTitle("Progressing...")
+            .setSmallIcon(R.drawable.ic_schedule_black_24dp)
+            .setProgress(1,0,false);
+    notificationManager.notify(id, timedBuilder.build());
+
+    Observable.interval(50, TimeUnit.MILLISECONDS, Schedulers.io())
+            .takeWhile(num -> num <= 60)
+            .subscribe(
+                    // Increment progress
+                    percentage -> {
+                        timedBuilder.setProgress(60, percentage.intValue(), false);
+                        notificationManager.notify(id, timedBuilder.build()); },
+                    ignore -> {},
+                    // When done, notify user.
+                    () -> {
+                        timedBuilder.setProgress(1, 1, false)
+                                .setContentTitle("Done!")
+                                .setContentText("Done!")
+                                .setAutoCancel(true);
+                        notificationManager.notify(id, timedBuilder.build()); }
+            );
+}
+```
 
