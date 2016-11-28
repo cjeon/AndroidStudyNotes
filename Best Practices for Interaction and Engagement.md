@@ -642,3 +642,4 @@ public boolean onOptionsItemSelected(MenuItem menuItem) {
 }
 ```
 
+# [Adding Search Functionality](https://developer.android.com/training/search/index.html)
