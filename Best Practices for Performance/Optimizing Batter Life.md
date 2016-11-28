@@ -11,6 +11,7 @@ By taking steps such as batching network requests, disabling background service 
 - [Optimizing Battery Life](#optimizing-battery-life)
 - [Monitoring the Battery Level and Charging State](#monitoring-the-battery-level-and-charging-state)
     - [Determine the Current Charging State](#determine-the-current-charging-state)
+    - [Monitor Changes in Charging State](#monitor-changes-in-charging-state)
 
 <!-- /TOC -->
 
@@ -37,6 +38,10 @@ int chargePlug = batteryStatus.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1);
 boolean usbCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_USB;
 boolean acCharge = chargePlug == BatteryManager.BATTERY_PLUGGED_AC;
 ```
+
+Prefer AC > USB > discharging.
+
+## Monitor Changes in Charging State
 
 
                      

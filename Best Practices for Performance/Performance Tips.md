@@ -7,6 +7,22 @@
 
 For further reference about java(this document also covers android), see **effective java**.
 
+<!-- TOC -->
+
+- [[Performance Tips](https://developer.android.com/training/articles/perf-tips.html)](#performance-tipshttpsdeveloperandroidcomtrainingarticlesperf-tipshtml)
+- [1. Avoid Creating Unnecessary Objects](#1-avoid-creating-unnecessary-objects)
+- [2. Prefer Static Over Virtual](#2-prefer-static-over-virtual)
+- [3. Use Static Final For Constants](#3-use-static-final-for-constants)
+- [4. Avoid Internal Getters/Setters](#4-avoid-internal-getterssetters)
+- [5. Use Enhanced For Loop Syntax](#5-use-enhanced-for-loop-syntax)
+- [6. Consider Package Instead of Private Access with Private Inner Classes](#6-consider-package-instead-of-private-access-with-private-inner-classes)
+- [7. Avoid Using Floating-Point](#7-avoid-using-floating-point)
+- [8. Know and Use Libraries.](#8-know-and-use-libraries)
+- [9. Use Native Methods Carefully.](#9-use-native-methods-carefully)
+- [10. Performance myths](#10-performance-myths)
+
+<!-- /TOC -->
+
 # 1. Avoid Creating Unnecessary Objects  
 
 > Object creation is never free ... allocating memory is always more expensive than not allocating memory.
